@@ -188,10 +188,10 @@ uint16_t prng(uint16_t maxvalue) {
 // Reset Watchdog
 void resetWatchdog(void) {
   cli();                                      // timed sequence coming up
+  wdt_reset();                                // reset watchdog
   MCUSR = 0;                                  // clear various "reset" flags
   WDTCR = (1<<WDCE)|(1<<WDE)|(1<<WDTIF);      // allow changes, clear interrupt
   WDTCR = (1<<WDTIE)|(1<<WDP1);               // set interval 64ms
-  wdt_reset();                                // pat the dog
   sei();                                      // interrupts are required now
 }
 
