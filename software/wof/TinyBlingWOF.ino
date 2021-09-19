@@ -100,6 +100,7 @@ void NEO_setPixel(uint8_t nr, uint8_t hue) {
 // Runtime delay
 // -----------------------------------------------------------------------------
 
+// Delay milliseconds
 void delayms(uint8_t time) {
   while (time--) _delay_ms(1);
 }
@@ -107,8 +108,6 @@ void delayms(uint8_t time) {
 // -----------------------------------------------------------------------------
 // Main Function
 // -----------------------------------------------------------------------------
-
-#define delay(t)  
 
 int main(void) {  
   // Local variables
