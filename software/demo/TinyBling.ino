@@ -1,22 +1,19 @@
-// TinyBling ... it just does bling bling
+// ===================================================================================
+// Project:   TinyBling ... it just does bling bling
+// Version:   v1.0
+// Year:      2021
+// Author:    Stefan Wagner
+// Github:    https://github.com/wagiminator
+// EasyEDA:   https://easyeda.com/wagiminator
+// License:   http://creativecommons.org/licenses/by-sa/3.0/
+// ===================================================================================
 //
-//                             +-\/-+
-//           --- A0 (D5) PB5  1|°   |8  Vcc
-// NEOPIXELS --- A3 (D3) PB3  2|    |7  PB2 (D2) A1 ---
-// BUTTON ------ A2 (D4) PB4  3|    |6  PB1 (D1) ------
-//                       GND  4|    |5  PB0 (D0) ------
-//                             +----+
+// Description:
+// ------------
+// Various decorative light animations using the TinyBling's neopixels.
 //
-// Controller:  ATtiny13A
-// Core:        MicroCore (https://github.com/MCUdude/MicroCore)
-// Clockspeed:  9.6 MHz internal
-// BOD:         BOD disabled
-// Timing:      Micros disabled
-//
-// Leave the rest on default settings. Don't forget to "Burn bootloader"!
-// No Arduino core functions or libraries are used. Use the makefile if 
-// you want to compile without Arduino IDE.
-//
+// References:
+// -----------
 // The Neopixel implementation is based on NeoController.
 // https://github.com/wagiminator/ATtiny13-NeoController
 //
@@ -27,32 +24,51 @@
 // Galois linear feedback shift register is taken from Łukasz Podkalicki.
 // https://blog.podkalicki.com/attiny13-pseudo-random-numbers/
 //
-// 2021 by Stefan Wagner 
-// Project Files (EasyEDA): https://easyeda.com/wagiminator
-// Project Files (Github):  https://github.com/wagiminator
-// License: http://creativecommons.org/licenses/by-sa/3.0/
+// Wiring:
+// -------
+//                              +-\/-+
+//           --- RST ADC0 PB5  1|°   |8  Vcc
+// NEOPIXELS ------- ADC3 PB3  2|    |7  PB2 ADC1 -------- 
+//    BUTTON ------- ADC2 PB4  3|    |6  PB1 AIN1 OC0B --- 
+//                        GND  4|    |5  PB0 AIN0 OC0A --- 
+//                              +----+
+//
+// Compilation Settings:
+// ---------------------
+// Controller:  ATtiny13A
+// Core:        MicroCore (https://github.com/MCUdude/MicroCore)
+// Clockspeed:  9.6 MHz internal
+// BOD:         BOD disabled
+// Timing:      Micros disabled
+//
+// Leave the rest on default settings. Don't forget to "Burn bootloader"!
+// No Arduino core functions or libraries are used. Use the makefile if 
+// you want to compile without Arduino IDE.
+//
+// Fuse settings: -U lfuse:w:0x3a:m -U hfuse:w:0xff:m
 
+
+// ===================================================================================
+// Libraries and Definitions
+// ===================================================================================
 
 // Libraries
-#include <avr/io.h>
-#include <avr/wdt.h>
-#include <avr/sleep.h>
-#include <avr/power.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
+#include <avr/io.h>           // for GPIO
+#include <avr/wdt.h>          // for the watchdog timer
+#include <avr/sleep.h>        // for sleep functions
+#include <avr/pgmspace.h>     // to store data in programm memory
+#include <avr/interrupt.h>    // for interrupts
 
-// Pins
+// Pin definitions
 #define NEO_PIN       PB3     // Pin for neopixels
 #define BT_PIN        PB4     // Pin for button
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Low-Level Neopixel Implementation for 9.6 MHz MCU Clock and 800 kHz Pixels
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
-// NeoPixel parameter
+// NeoPixel parameter and macros
 #define NEO_GRB                                 // type of pixel: NEO_GRB or NEO_RGB
-
-// NeoPixel macros
 #define NEO_init()    DDRB |= (1<<NEO_PIN)      // set pixel DATA pin as output
 
 // Gamma correction table
@@ -101,7 +117,7 @@ void NEO_show(void) {
     uint8_t step  = NEO_hue[i] & 63;
     uint8_t col   = pgm_read_byte(&gamma[step >> (6 - NEO_bright[i])]);
     uint8_t ncol  = pgm_read_byte(&gamma[(63 - step) >> (6 - NEO_bright[i])]);
-    switch (phase) {
+    switch(phase) {
       case 0:   NEO_writeColor(ncol,  col,     0); break;
       case 1:   NEO_writeColor(    0, ncol,  col); break;
       case 2:   NEO_writeColor( col,     0, ncol); break;
@@ -110,9 +126,9 @@ void NEO_show(void) {
   }
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // High-Level Neopixel Functions
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // Set color to a single pixel
 void NEO_set(uint8_t number, uint8_t hue) {
@@ -168,9 +184,9 @@ void NEO_ccw(void) {
   NEO_hue[15] = htemp;
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Pseudo Random Number Generator (adapted from Łukasz Podkalicki)
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // Start state (any nonzero value will work)
 uint16_t rn = 0xACE1;
@@ -181,9 +197,9 @@ uint16_t prng(uint16_t maxvalue) {
   return(rn % maxvalue);
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Watchdog Implementation (Sleep Timer)
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // Reset Watchdog
 void resetWatchdog(void) {
@@ -200,9 +216,9 @@ ISR(WDT_vect) {
   wdt_disable();                              // disable watchdog
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Main Function
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 int main(void) {
   // Reset watchdog timer
@@ -226,7 +242,7 @@ int main(void) {
   // Loop
   while(1) {
     // Animate
-    switch (state) {
+    switch(state) {
       case 0:   hue1 = 0; hue2 = 96; ptr1 = 0; ptr2 = 8; counter = 1;
                 break;
                 

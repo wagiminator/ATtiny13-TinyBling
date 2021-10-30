@@ -1,12 +1,34 @@
-// TinyBling - Wheel of Fortune
+// ===================================================================================
+// Project:   TinyBling - Wheel of Fortune
+// Version:   v1.0
+// Year:      2021
+// Author:    Stefan Wagner
+// Github:    https://github.com/wagiminator
+// EasyEDA:   https://easyeda.com/wagiminator
+// License:   http://creativecommons.org/licenses/by-sa/3.0/
+// ===================================================================================
 //
-//                             +-\/-+
-//           --- A0 (D5) PB5  1|°   |8  Vcc
-// NEOPIXELS --- A3 (D3) PB3  2|    |7  PB2 (D2) A1 ---
-// BUTTON ------ A2 (D4) PB4  3|    |6  PB1 (D1) ------
-//                       GND  4|    |5  PB0 (D0) ------
-//                             +----+
+// Description:
+// ------------
+// A simple wheel of fortune on the TinyBling. Press the button and look forward to
+// the result!
 //
+// References:
+// -----------
+// The Neopixel implementation is based on NeoController.
+// https://github.com/wagiminator/ATtiny13-NeoController
+//
+// Wiring:
+// -------
+//                              +-\/-+
+//           --- RST ADC0 PB5  1|°   |8  Vcc
+// NEOPIXELS ------- ADC3 PB3  2|    |7  PB2 ADC1 -------- 
+//    BUTTON ------- ADC2 PB4  3|    |6  PB1 AIN1 OC0B --- 
+//                        GND  4|    |5  PB0 AIN0 OC0A --- 
+//                              +----+
+//
+// Compilation Settings:
+// ---------------------
 // Controller:  ATtiny13A
 // Core:        MicroCore (https://github.com/MCUdude/MicroCore)
 // Clockspeed:  9.6 MHz internal
@@ -17,34 +39,29 @@
 // No Arduino core functions or libraries are used. Use the makefile if 
 // you want to compile without Arduino IDE.
 //
-// The Neopixel implementation is based on NeoController.
-// https://github.com/wagiminator/ATtiny13-NeoController
-//
-// 2021 by Stefan Wagner 
-// Project Files (EasyEDA): https://easyeda.com/wagiminator
-// Project Files (Github):  https://github.com/wagiminator
-// License: http://creativecommons.org/licenses/by-sa/3.0/
+// Fuse settings: -U lfuse:w:0x3a:m -U hfuse:w:0xff:m
 
+
+// ===================================================================================
+// Libraries and Definitions
+// ===================================================================================
 
 // Libraries
-#include <avr/io.h>
-#include <avr/sleep.h>
-#include <avr/power.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
+#include <avr/io.h>           // for GPIO
+#include <avr/sleep.h>        // for sleep functions
+#include <avr/interrupt.h>    // for interrupts
+#include <util/delay.h>       // for delays
 
-// Pins
+// Pin definitions
 #define NEO_PIN       PB3     // Pin for neopixels
 #define BT_PIN        PB4     // Pin for button
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Neopixel Implementation for 9.6 MHz MCU Clock and 800 kHz Pixels
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
-// NeoPixel parameter
+// NeoPixel parameter and macros
 #define NEO_GRB                                 // type of pixel: NEO_GRB or NEO_RGB
-
-// NeoPixel macros
 #define NEO_init()    DDRB |= (1<<NEO_PIN)      // set pixel DATA pin as output
 
 // Send a byte to the pixels string
@@ -79,7 +96,7 @@ void NEO_writeHue(uint8_t hue) {
   uint8_t phase = hue >> 6;
   uint8_t step  = (hue & 63) << 2;
   uint8_t nstep = (63 << 2) - step;
-  switch (phase) {
+  switch(phase) {
     case 0:   NEO_writeColor(nstep,  step,     0); break;
     case 1:   NEO_writeColor(    0, nstep,  step); break;
     case 2:   NEO_writeColor( step,     0, nstep); break;
@@ -96,18 +113,18 @@ void NEO_setPixel(uint8_t nr, uint8_t hue) {
   sei();
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Runtime delay
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 // Delay milliseconds
 void delayms(uint8_t time) {
-  while (time--) _delay_ms(1);
+  while(time--) _delay_ms(1);
 }
 
-// -----------------------------------------------------------------------------
+// ===================================================================================
 // Main Function
-// -----------------------------------------------------------------------------
+// ===================================================================================
 
 int main(void) {  
   // Local variables
@@ -134,7 +151,7 @@ int main(void) {
   // Loop
   while(1) {    
     sleep_mode();                         // go to sleep
-    if (~PINB & (1<<BT_PIN)) {            // if button pressed:
+    if(~PINB & (1<<BT_PIN)) {             // if button pressed:
       speed = 16 + (TCNT0 & 15);          // set start speed randomly
       while(--speed) {                    // increase speed
         if(++hue > 191) hue = 0;          // next hue value
@@ -155,4 +172,4 @@ int main(void) {
 }
 
 // Pin change interrupt service routine
-EMPTY_INTERRUPT (PCINT0_vect);    // nothing to be done here, just wake up from sleep
+EMPTY_INTERRUPT(PCINT0_vect);             // nothing to be done here, just wake up from sleep
