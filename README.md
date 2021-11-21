@@ -1,5 +1,5 @@
 # TinyBling - it just does bling bling...
-TinyBling is a completely pointless device that just does bling bling. It's wasted an ATtiny13A, 16 WS2812-2020 5mA addressable LEDs, and a LIR2032 rechargeable coin cell battery.
+TinyBling is a completely pointless device that just does bling bling. It's wasted an ATtiny13A, 16 WS2812C-2020 5mA addressable LEDs, and a LIR2032 rechargeable coin cell battery.
 
 - Project Video (Youtube): https://youtu.be/-KiLh9RPjs4
 - Design Files (EasyEDA): https://easyeda.com/wagiminator/attiny13-tinybling
